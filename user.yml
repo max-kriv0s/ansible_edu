@@ -1,0 +1,12 @@
+---
+- name: User
+  hosts: demo
+  tasks:
+    - name: Preconfig block
+      become: true
+      block:
+        - name: Reboot
+          ansible.builtin.command: reboot
+          async: 1000
+          poll: 0
+          changed_when: true
