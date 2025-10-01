@@ -1,0 +1,60 @@
+---
+- name: Preconfig
+  hosts: cluster
+  become: true
+  tasks:
+    - name: Установка необходимых пакетов для Docker
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        update_cache: true
+        cache_valid_time: 86400
+
+    - name: Создать директорию для ключей Docker
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Добавление ключа Docker
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+
+    - name: Установка стабильного репозитория Docker
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ ansible_architecture }} signed-by=/etc/apt/keyrings/docker.asc] \
+          https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+        update_cache: true
+
+    - name: Скачивание установочного скрипта Docker
+      ansible.builtin.get_url:
+        url: https://get.docker.com
+        dest: /tmp/get-docker.sh
+        mode: '0755'
+
+    - name: Установка Docker из скрипта
+      ansible.builtin.command: /tmp/get-docker.sh
+      args:
+        creates: /usr/bin/docker
+
+    - name: Запуск и включение сервиса Docker
+      ansible.builtin.service:
+        name: docker
+        state: restarted
+        enabled: true
+
+    - name: Добавление пользователя в группу Docker
+      ansible.builtin.user:
+        name: '{{ ansible_user }}'
+        groups: docker
+        append: true
+
+    - name: Перезагрузка сервера
+      ansible.builtin.reboot:
