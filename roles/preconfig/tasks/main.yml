@@ -1,5 +1,6 @@
 ---
 - name: Установка Docker
+  become: true
   block:
     - name: Установка необходимых пакетов для Docker
       ansible.builtin.apt:
@@ -9,6 +10,7 @@
           - curl
           - gnupg
           - lsb-release
+          - python3-pip
         update_cache: true
         cache_valid_time: 86400
 
@@ -53,6 +55,12 @@
         name: '{{ ansible_user }}'
         groups: docker
         append: true
+
+    - name: Настройка дополнительных пакетов python
+      block:
+        - name: Установка pip пакетов
+          ansible.builtin.pip:
+            name: docker
 
     - name: Перезагрузка сервера
       ansible.builtin.reboot:
