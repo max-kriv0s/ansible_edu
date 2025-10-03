@@ -59,8 +59,9 @@
     - name: Настройка дополнительных пакетов python
       block:
         - name: Установка pip пакетов
-          ansible.builtin.pip:
-            name: docker
+          ansible.builtin.apt:
+            name: python3-docker
+            state: present
 
     - name: Перезагрузка сервера
       ansible.builtin.reboot:
